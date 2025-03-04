@@ -1,4 +1,4 @@
-package ru.bookservice.bookservice.service;
+package ru.bookservice.bookservice.client;
 
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,7 +9,7 @@ import ru.bookservice.bookservice.exception.ServerNotAvailableException;
 
 @Service
 @AllArgsConstructor
-public class LibraryServiceClient {
+public class LibraryGateway {
     private final RestClient restClient;
 
     @Value("${api.host}")
@@ -21,7 +21,7 @@ public class LibraryServiceClient {
     /**
      * Конструктор по умолчанию, инициализирующий RestClient.
      */
-    public LibraryServiceClient() {
+    public LibraryGateway() {
         restClient = RestClient.create();
     }
 
@@ -39,7 +39,7 @@ public class LibraryServiceClient {
                     .retrieve()
                     .body(LibraryResponse.class);
         } catch (Exception e){
-            throw new ServerNotAvailableException("Сервер временно недоступен", "Ошибка при подключении к серверу, попробуйте зайти позже");
+            throw new ServerNotAvailableException("Сервер временно недоступен. Ошибка при подключении к серверу, попробуйте зайти позже.");
         }
     }
 }

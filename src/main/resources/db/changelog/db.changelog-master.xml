@@ -3,13 +3,6 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
-    <changeSet id="create.table.xml" author="mnrodionov">
-        <comment>создание таблиц бд</comment>
-        <sqlFile path="../../sql/create_tables.sql" endDelimiter=";" relativeToChangelogFile="true"/>
-    </changeSet>
-
-    <changeSet id="test.data.xml" author="mnrodionov">
-        <comment>добавление тестовых данных</comment>
-        <sqlFile path="../../sql/test_data.sql" endDelimiter=";" relativeToChangelogFile="true"/>
-    </changeSet>
+    <include file="db/changelog/changes/create_tables.xml"/>
+    <include file="db/changelog/changes/test_data.xml"/>
 </databaseChangeLog>

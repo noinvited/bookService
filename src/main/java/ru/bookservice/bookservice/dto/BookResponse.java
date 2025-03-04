@@ -9,5 +9,5 @@ import java.util.List;
 public class BookResponse {
     private String title;
     private String author;
-    private List<LibraryResponse> listOfLibraries;
+    private List<LibraryResponse> libraries;
 }

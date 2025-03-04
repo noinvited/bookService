@@ -7,5 +7,4 @@ import lombok.Data;
 @AllArgsConstructor
 public class ServerNotAvailableResponse {
     private String message;
-    private String error;
 }

@@ -4,31 +4,38 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
-@AutoConfigureMockMvc
-class LibraryServiceApplicationTests {
+class BookServiceApplicationTests {
     @Autowired
-    private MockMvc mockMvc;
+    private TestRestTemplate restTemplate;
+
     private static WireMockServer wireMockServer;
-    private static int apiPort = 8081;
+
+    private String bookByIdTestCorrectOnceCheck= "{\"title\":\"The Great Gatsby\",\"author\":\"F. Scott Fitzgerald\",\"libraries\":[{\"name\":\"№1\",\"location\":\"New York\"}]}";
+    private String bookByIdTestCorrectSomeCheck= "{\"title\":\"The Hobbit\",\"author\":\"J.R.R. Tolkien\",\"libraries\":[{\"name\":\"№2\",\"location\":\"Los Angeles\"},{\"name\":\"№3\",\"location\":\"Chicago\"},{\"name\":\"№4\",\"location\":\"Houston\"}]}";
+    private String bookByIdTestIncorrectCheck = "{\"message\":\"Book not found\",\"id\":20}";
+    private String allBookTestCorrectCheck = "[{\"title\":\"The Great Gatsby\",\"author\":\"F. Scott Fitzgerald\",\"libraries\":[{\"name\":\"№1\",\"location\":\"New York\"}]},{\"title\":\"The Hobbit\",\"author\":\"J.R.R. Tolkien\",\"libraries\":[{\"name\":\"№2\",\"location\":\"Los Angeles\"},{\"name\":\"№3\",\"location\":\"Chicago\"},{\"name\":\"№4\",\"location\":\"Houston\"}]},{\"title\":\"The Lord of the Rings\",\"author\":\"J.R.R. Tolkien\",\"libraries\":[]}]";
 
     @Container
     private static final PostgreSQLContainer<?> postgresqlContainer = new PostgreSQLContainer<>("postgres:13")
@@ -44,8 +51,8 @@ class LibraryServiceApplicationTests {
     }
 
     @BeforeAll
-    static void setUp() {
-        wireMockServer = new WireMockServer(apiPort);
+    static void setUp(@Value("${api.port}") int port) {
+        wireMockServer = new WireMockServer(port);
         wireMockServer.start();
 
         wireMockServer.stubFor(WireMock.get("/libraries/1")
@@ -75,118 +82,42 @@ class LibraryServiceApplicationTests {
     }
 
     @Test
-    void GetBookByIdTestCorrectOnce() throws Exception {
-        wireMockServer.stubFor(WireMock.get("/libraries/1")
-                .willReturn(aResponse()
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("{\"name\":\"№1\",\"location\":\"New York\"}")));
+    @DisplayName("Информация о книге по id, с одной библиотекой")
+    void GetBookByIdTestCorrectOnce() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/books/1", String.class);
 
-        mockMvc.perform(get("/books/1"))
-                .andExpectAll(
-                        status().isOk(),
-                        content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON),
-                        content().json("""
-                                {
-                                	"title": "The Great Gatsby",
-                                	"author": "F. Scott Fitzgerald",
-                                	"listOfLibraries": [
-                                		{
-                                			"name": "№1",
-                                			"location": "New York"
-                                		}
-                                	]
-                                }										
-                                """)
-                );
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getHeaders().getContentType().isCompatibleWith(MediaType.APPLICATION_JSON));
+        assertEquals(bookByIdTestCorrectOnceCheck, response.getBody());
     }
 
     @Test
-    void GetBookByIdTestCorrectSome() throws Exception {
-        mockMvc.perform(get("/books/2"))
-                .andExpectAll(
-                        status().isOk(),
-                        content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON),
-                        content().json("""
-                                {
-                                  	"title": "The Hobbit",
-                                  	"author": "J.R.R. Tolkien",
-                                  	"listOfLibraries": [
-                                	 	 {
-                                		  	"name": "№2",
-                                		  	"location": "Los Angeles"
-                                	  	},
-                                	  	{
-                                		  	"name": "№3",
-                                		  	"location": "Chicago"
-                                	  	},
-                                	  	{
-                                		 	 "name": "№4",
-                                		  	"location": "Houston"
-                                	 	 }
-                                  	]
-                                   }
-                                """)
-                );
+    @DisplayName("Информация о книге по id, с несколькими библиотеками")
+    void GetBookByIdTestCorrectSome() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/books/2", String.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getHeaders().getContentType().isCompatibleWith(MediaType.APPLICATION_JSON));
+        assertEquals(bookByIdTestCorrectSomeCheck, response.getBody());
     }
 
     @Test
-    void GetBookByIdTestIncorrect() throws Exception {
-        mockMvc.perform(get("/books/20"))
-                .andExpectAll(
-                        status().isBadRequest(),
-                        content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON),
-                        content().json("""
-                                {
-                                	"message": "Book not found",
-                                	"id": 20
-                                }										
-                                """)
-                );
+    @DisplayName("Поиск несуществующей книги")
+    void GetBookByIdTestIncorrect() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/books/20", String.class);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertTrue(response.getHeaders().getContentType().isCompatibleWith(MediaType.APPLICATION_JSON));
+        assertEquals(bookByIdTestIncorrectCheck, response.getBody());
     }
 
     @Test
-    void GetAllBookTestCorrect() throws Exception {
-        mockMvc.perform(get("/books"))
-                .andExpectAll(
-                        status().isOk(),
-                        content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON),
-                        content().json("""
-                                [
-                                	{
-                                		"title": "The Great Gatsby",
-                                		"author": "F. Scott Fitzgerald",
-                                		"listOfLibraries": [
-                                			{
-                                				"name": "№1",
-                                				"location": "New York"
-                                			}
-                                		]
-                                	},
-                                	{
-                                		"title": "The Hobbit",
-                                		"author": "J.R.R. Tolkien",
-                                		"listOfLibraries": [
-                                			{
-                                				"name": "№2",
-                                				"location": "Los Angeles"
-                                			},
-                                			{
-                                				"name": "№3",
-                                				"location": "Chicago"
-                                			},
-                                			{
-                                				"name": "№4",
-                                				"location": "Houston"
-                                			}
-                                		]
-                                	},
-                                	{
-                                		"title": "The Lord of the Rings",
-                                		"author": "J.R.R. Tolkien",
-                                		"listOfLibraries": []
-                                	}
-                                ]
-                                """)
-                );
+    @DisplayName("Информация о всех книгах")
+    void GetAllBookTestCorrect() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/books", String.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getHeaders().getContentType().isCompatibleWith(MediaType.APPLICATION_JSON));
+        assertEquals(allBookTestCorrectCheck, response.getBody());
     }
 }

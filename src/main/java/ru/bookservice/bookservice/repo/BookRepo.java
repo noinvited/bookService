@@ -1,4 +1,4 @@
-package ru.bookservice.bookservice.repos;
+package ru.bookservice.bookservice.repo;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import ru.bookservice.bookservice.domain.Book;

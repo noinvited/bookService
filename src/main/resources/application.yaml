@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: BookService
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bookService
+    username: postgres
+    password: "1234"
+  jpa:
+    generate-ddl: false
+    show-sql: false
+    hibernate:
+      ddl-auto: none
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
+
+api:
+  host: http://localhost
+  port: 8081

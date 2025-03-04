@@ -1,0 +1,43 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="test-data-1" author="mnrodionov">
+        <comment>добавление тестовых данных</comment>
+        <insert tableName="book" schemaName="public">
+            <column name="title" value="The Great Gatsby"/>
+            <column name="author" value="F. Scott Fitzgerald"/>
+        </insert>
+        <insert tableName="book" schemaName="public">
+            <column name="title" value="The Hobbit"/>
+            <column name="author" value="J.R.R. Tolkien"/>
+        </insert>
+        <insert tableName="book" schemaName="public">
+            <column name="title" value="The Lord of the Rings"/>
+            <column name="author" value="J.R.R. Tolkien"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="test-data-2" author="mnrodionov">
+        <comment>добавление тестовых данных</comment>
+        <insert tableName="book_library" schemaName="public">
+            <column name="book_id" value="1"/>
+            <column name="library_id" value="1"/>
+        </insert>
+        <insert tableName="book_library" schemaName="public">
+            <column name="book_id" value="2"/>
+            <column name="library_id" value="2"/>
+        </insert>
+        <insert tableName="book_library" schemaName="public">
+            <column name="book_id" value="2"/>
+            <column name="library_id" value="3"/>
+        </insert>
+        <insert tableName="book_library" schemaName="public">
+            <column name="book_id" value="2"/>
+            <column name="library_id" value="4"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

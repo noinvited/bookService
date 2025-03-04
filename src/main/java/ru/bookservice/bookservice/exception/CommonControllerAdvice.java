@@ -16,6 +16,6 @@ public class CommonControllerAdvice {
 
     @ExceptionHandler(ServerNotAvailableException.class)
     public ResponseEntity<ServerNotAvailableResponse> handleInvalidRequestCategoryException(ServerNotAvailableException e) {
-        return ResponseEntity.status(e.getStatus()).body(new ServerNotAvailableResponse(e.getMessage(), e.getError()));
+        return ResponseEntity.status(e.getStatus()).body(new ServerNotAvailableResponse(e.getMessage()));
     }
 }

@@ -2,14 +2,15 @@ package ru.bookservice.bookservice.service;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.bookservice.bookservice.client.LibraryGateway;
 import ru.bookservice.bookservice.domain.Book;
 import ru.bookservice.bookservice.domain.BookLibrary;
 import ru.bookservice.bookservice.dto.BookResponse;
 import ru.bookservice.bookservice.dto.LibraryResponse;
 import ru.bookservice.bookservice.exception.BadBookRequestException;
 import ru.bookservice.bookservice.exception.ServerNotAvailableException;
-import ru.bookservice.bookservice.repos.BookLibraryRepo;
-import ru.bookservice.bookservice.repos.BookRepo;
+import ru.bookservice.bookservice.repo.BookLibraryRepo;
+import ru.bookservice.bookservice.repo.BookRepo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,7 @@ import java.util.List;
 public class BookService {
     private final BookRepo bookRepo;
     private final BookLibraryRepo bookLibraryRepo;
-    private final LibraryServiceClient libraryServiceClient;
+    private final LibraryGateway libraryGateway;
 
     /**
      * Возвращает информацию о книге по её идентификатору, включая список библиотек, в которых она находится.
@@ -31,13 +32,10 @@ public class BookService {
      */
     public BookResponse getBook(Long id) throws BadBookRequestException, ServerNotAvailableException {
         Book book = getBookById(id);
-        if (book == null) {
-            return null;
-        }
         List<BookLibrary> bookLibraries = getBookLibraryById(book);
         List<LibraryResponse> libraryResponses = new ArrayList<>();
         for(BookLibrary bookLibrary : bookLibraries) {
-            libraryResponses.add(libraryServiceClient.getLibraryById(bookLibrary.getId()));
+            libraryResponses.add(libraryGateway.getLibraryById(bookLibrary.getId()));
         }
         return new BookResponse(book.getTitle(), book.getAuthor(), libraryResponses);
     }
@@ -55,7 +53,7 @@ public class BookService {
             List<BookLibrary> bookLibraries = getBookLibraryById(book);
             List<LibraryResponse> libraryResponses = new ArrayList<>();
             for(BookLibrary bookLibrary : bookLibraries) {
-                libraryResponses.add(libraryServiceClient.getLibraryById(bookLibrary.getId()));
+                libraryResponses.add(libraryGateway.getLibraryById(bookLibrary.getId()));
             }
             bookResponses.add(new BookResponse(book.getTitle(), book.getAuthor(), libraryResponses));
         }
