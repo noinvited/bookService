@@ -1,4 +1,4 @@
-# BookService Microservice
+# BookService
 
 ## Описание
 
